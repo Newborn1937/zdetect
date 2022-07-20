@@ -103,6 +103,7 @@ class VkAPI:
             ntoload = ntoload_max
         else:
             ntoload = min(ntoload, ntoload_max)
+        pbar = tqdm(total=ntoload)
         while True:
             try:
                 res = self.api.groups.getMembers(
@@ -111,10 +112,11 @@ class VkAPI:
                         fields=fields)
                 nret = len(res['items'])
                 count += nret
-                print(f'Count: {count} / {ntoload}')
+                #print(f'Count: {count} / {ntoload}')
                 if nret:
                     members += res['items']
                     offset += nret
+                    pbar.update(nret)
                 if count >= ntoload:
                     members = members[:ntoload]
                     break
@@ -124,7 +126,8 @@ class VkAPI:
                         print(f'VkAPI Exception: {e.code}')
                 else:
                     print(f'Exception: {e}')
-                time.sleep(0.4)                   
+                time.sleep(0.4)
+        pbar.close()                 
         return members    
     
     def load_wall_records(self, group_id, ntoread):
