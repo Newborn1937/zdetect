@@ -8,7 +8,7 @@ import pickle
 import vk_utils
 
 
-GROUP_ID = 'putin_z'
+GROUP_ID = 'zogolovok'
 
 FIELDS_TO_LOAD = ['photo_200_orig', 'last_seen', 'status', 'bdate',
                   'has_photo', 'followers_count', 'education']
