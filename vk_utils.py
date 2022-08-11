@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import datetime
+import re
 import time
+import urllib
 
 import requests
 from tqdm import tqdm
@@ -226,3 +229,29 @@ class VkAPI:
         return usr_comm_count
 
 
+def _get_user_reg_date(user_id):
+  '''Get user registration date. '''
+  # Send request to vk server
+  req = f'https://vk.com/foaf.php?id={user_id}'
+  resp = urllib.request.urlopen(req)
+  # Convert response to a string
+  resp_str = resp.read().decode(encoding='windows-1251')
+  # Find registration date in the response
+  templ_str = 'ya:created dc:date="([\d]+-[\d]+-[\d]+)T'
+  templ = re.compile(templ_str)
+  reg_str = templ.findall(resp_str)
+  if len(reg_str) != 1:
+    return None
+  reg_str = reg_str[0]
+  # Convert registration date from string to 'date' object
+  reg_date = datetime.date.fromisoformat(reg_str)
+  return reg_date
+
+def get_user_reg_date(user_id, max_iter=5):
+  '''Get user registration date, if unavailable - look among the nearest users . '''
+  for n in range(max_iter):
+    for m in [1, -1]:
+      reg_date = _get_user_reg_date(user_id + n * m)
+      if reg_date is not None:
+        return reg_date
+  return None
