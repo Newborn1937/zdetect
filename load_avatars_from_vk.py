@@ -10,11 +10,11 @@ from tqdm import tqdm
 from vk_utils import VkAPI
 
 
-FPATH_USERS_INFO = r'D:\WORK\zresult\members_info\putin_z_members.pkl'
+FPATH_USERS_INFO = r'D:\WORK\zresult\members_info\zogolovok_members.pkl'
 
 N_AVATARS_TO_LOAD = 45000
 
-DIRPATH_OUT = r'D:\WORK\zresult\putin_z'
+DIRPATH_OUT = r'D:\WORK\zresult\zogolovok'
 
 
 # Download an image from url
@@ -29,6 +29,13 @@ def load_img(url, fpath_out):
 
 
 vk_api = VkAPI()
+
+# Create output folders
+if not os.path.exists(DIRPATH_OUT):
+    os.mkdir(DIRPATH_OUT)
+dirpath_avatars = os.path.join(DIRPATH_OUT, 'avatars')
+if not os.path.exists(dirpath_avatars):
+    os.mkdir(dirpath_avatars)
 
 # Load users' info from disk (which was previously loaded from vk)
 with open(FPATH_USERS_INFO, 'rb') as fid:
@@ -46,23 +53,19 @@ users_with_photo = {user_id: user
 
 #users_selected = users_with_photo
 
-# =============================================================================
-# TODO: check whether 'users.pkl' exists
-# # Select a random subset of users
-# user_idx = list(users_with_photo.keys())
-# random.shuffle(user_idx)
-# N = min(N_AVATARS_TO_LOAD, len(user_idx))
-# user_idx = user_idx[:N]
-# users_selected = {user_id: users_with_photo[user_id] for user_id in user_idx}
-# 
-# # Save the subset of users
-# fpath_users_sel = os.path.join(DIRPATH_OUT, 'users.pkl')
-# with open(fpath_users_sel, 'wb') as fid:
-#     pickle.dump(users_selected, fid)
-# =============================================================================
+# Select a random subset of users
+user_idx = list(users_with_photo.keys())
+random.shuffle(user_idx)
+N = min(N_AVATARS_TO_LOAD, len(user_idx))
+user_idx = user_idx[:N]
+users_selected = {user_id: users_with_photo[user_id] for user_id in user_idx}
+
+# Save the subset of users
+fpath_users_sel = os.path.join(DIRPATH_OUT, 'users.pkl')
+with open(fpath_users_sel, 'wb') as fid:
+    pickle.dump(users_selected, fid)
 
 # Load avatars from VK
-dirpath_avatars = os.path.join(DIRPATH_OUT, 'avatars')
 for user in tqdm(users_selected.values()):
     fname_out = str(user['id']) + '.jpg'
     fpath_out = os.path.join(dirpath_avatars, fname_out)
