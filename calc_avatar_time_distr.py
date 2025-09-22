@@ -15,15 +15,16 @@ from vk_utils import VkAPI, get_user_reg_date
 
 #### Settings
 
-# =============================================================================
-# FPATH_USERS_INFO = r'D:\WORK\zresult\putin_z\users.pkl'
-# FPATHS_Z = [r'D:\WORK\zresult\putin_z\avatars\putin_z_z']
-# GROUP_NAME = 'putin_z'
-# =============================================================================
+#FPATH_USERS_INFO = r'D:\WORK\zresult\putin_z\users.pkl'
+FPATH_USERS_INFO = r'D:\WORK\zresult\members_info\putin_z_members.pkl'
+FPATHS_Z = [r'D:\WORK\zresult\putin_z\avatars\putin_z_z']
+GROUP_NAME = 'putin_z'
 
-FPATH_USERS_INFO = r'D:\WORK\zresult\random_around_24Feb\users_random_around_24Feb.pk'
-FPATHS_Z = [r'D:\WORK\zresult\random_around_24Feb\avatars\random_around_24Feb_z']
-GROUP_NAME = 'random'
+# =============================================================================
+# FPATH_USERS_INFO = r'D:\WORK\zresult\random_around_24Feb\users.pkl'
+# FPATHS_Z = [r'D:\WORK\zresult\random_around_24Feb\avatars\random_around_24Feb_z']
+# GROUP_NAME = 'random'
+# =====================================================s========================
 
 
 USER_ID_RANGE = (6.82e8, 7.33e8)
@@ -34,6 +35,9 @@ USER_ID_RANGE = (6.82e8, 7.33e8)
 with open(FPATH_USERS_INFO, 'rb') as fid:
     users = pickle.load(fid)
     
+if isinstance(users, list):
+  users = {user['id']: user for user in users}  
+    
     
 #### Categorize the users 
 
@@ -43,7 +47,7 @@ user_idx = np.array(user_idx)
 
 # Take subset of users
 mask = (user_idx > USER_ID_RANGE[0]) & (user_idx < USER_ID_RANGE[1])
-user_idx = user_idx[mask]
+#user_idx = user_idx[mask]
 
 # Active / inactive users
 user_idx_active = [user_id for user_id in user_idx
@@ -94,7 +98,7 @@ Nphoto = len(user_idx_photo)
 # Print summary
 print(f'Total: {Nsampled}')
 print(f'Active: {Nactive}, {Nactive / Nsampled}')
-print(f'With photo: {Nactive}, {Nphoto / Nactive}')
+print(f'With photo: {Nphoto}, {Nphoto / Nactive}')
 
 
 #### Find users with z-avatars
@@ -147,7 +151,7 @@ perc_warz_warphoto = h_war_z / h_war_photo
 
 #### Convert histogram bins from user idx to dates
 
-# User ID -> FRregistration date
+# User ID -> Rregistration date
 hbins_t = np.array([get_user_reg_date(user_id) for user_id in hbins])
 
 # Fill None's
@@ -191,37 +195,57 @@ def smooth(y, kernel_sz):
 # plt.xlabel('User ID')
 # plt.title('Percentage of active users with photo')
 # =============================================================================
+    
+def plot_with_dates(tvec, xvec, title_str, label, fig_id=None, style='-', linewidth=1):
+    fig = plt.figure(fig_id)
+    ax = fig.add_subplot(1,1,1)
+    plt.xticks(rotation=70)
+    plt.plot([], [])
+    plt.plot(tvec, xvec, style, linewidth=linewidth, label=label)
+    plt.xlabel('Days')
+    plt.legend()
+    plt.title(title_str)
+    ax.xaxis.set_major_locator(mdates.DayLocator(interval=15))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%d.%m.%y'))
+    
 
 perc_z_photo[np.isnan(perc_z_photo)] = 0
 perc_warz_warphoto[np.isnan(perc_warz_warphoto)] = 0
 
+#col = 'b'
+col = 'r'
+
 # Plot number of users with photo
-plt.figure(1010)
-plt.plot([], [])
-plt.plot(hbins_t[1:], h_photo, label=GROUP_NAME)
-plt.xlabel('Days')
-plt.legend()
-plt.title('Number of users with photo')
+plot_with_dates(hbins_t[1:], h_photo, fig_id=1011, style=f'{col}', linewidth=1,
+                title_str='Number of users with photo', label=GROUP_NAME)
 
 # Plot number of z-users
-plt.figure(1020)
-plt.plot(hbins_t[1:], h_z, label=GROUP_NAME)
-plt.xlabel('Days')
-plt.legend()
-plt.title('Number of z-users')
+plot_with_dates(hbins_t[1:], h_z, fig_id=1021, style=f'{col}:', linewidth=1,
+                title_str='Number of z-users', label=GROUP_NAME)
+plot_with_dates(hbins_t[1:], smooth(h_z, 7), fig_id=1021, style=f'{col}', linewidth=2,
+                title_str='Number of z-users', label=f'{GROUP_NAME}_smoothed')
+plot_with_dates(hbins_t[1:], smooth(h_z, 7), fig_id=1025, style=f'{col}', linewidth=1,
+                title_str='Number of z-users', label=f'{GROUP_NAME}_smoothed')
 
 # Plot percentage of z-users among users with photo
-fig = plt.figure(1030)
-ax = fig.add_subplot(1,1,1)
-plt.xticks(rotation=70)
-plt.plot([], [])
-#plt.plot(hbins_t[1:], perc_z_photo, label=GROUP_NAME)
-plt.plot(hbins_t[1:], smooth(perc_z_photo, 7), label=GROUP_NAME)
-plt.xlabel('Days')
-plt.legend()
-plt.title('Percentage of z-users')
-ax.xaxis.set_major_locator(mdates.DayLocator(interval=15))
-ax.xaxis.set_major_formatter(mdates.DateFormatter('%d.%m.%y'))
+plot_with_dates(hbins_t[1:], perc_z_photo, fig_id=1031, style=f'{col}:', linewidth=1,
+                title_str='Percentage of z-users', label=GROUP_NAME)
+plot_with_dates(hbins_t[1:], smooth(perc_z_photo, 7), fig_id=1031, style=f'{col}', linewidth=2,
+                title_str='Percentage of z-users', label=f'{GROUP_NAME}_smoothed')
+
+# =============================================================================
+# fig = plt.figure(1030)
+# ax = fig.add_subplot(1,1,1)
+# plt.xticks(rotation=70)
+# plt.plot([], [])
+# #plt.plot(hbins_t[1:], perc_z_photo, label=GROUP_NAME)
+# plt.plot(hbins_t[1:], smooth(perc_z_photo, 7), label=GROUP_NAME)
+# plt.xlabel('Days')
+# plt.legend()
+# plt.title('Percentage of z-users')
+# ax.xaxis.set_major_locator(mdates.DayLocator(interval=15))
+# ax.xaxis.set_major_formatter(mdates.DateFormatter('%d.%m.%y'))
+# =============================================================================
 
 # =============================================================================
 # # Plot percentage of users seen during the war (with photo)
