@@ -39,7 +39,7 @@ if isinstance(users, list):
   users = {user['id']: user for user in users}  
     
     
-#### Categorize the users 
+#### Categorize the users
 
 # All sampled users  
 user_idx = list(users.keys())
@@ -170,7 +170,7 @@ for n in range(1, len(hbins_t) - 1):
 hbins_t = hbins_tfix
 
 
-#### Visuzlize the results
+#### Visualize the results
 
 def smooth(y, kernel_sz):
     #K = np.ones(kernel_sz)
